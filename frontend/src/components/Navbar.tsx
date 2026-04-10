@@ -10,10 +10,10 @@ const Navbar: React.FC = () => {
     <header className="h-16 border-b border-white/10 bg-[#07101dcc] backdrop-blur-xl px-6 flex items-center justify-between">
       <button className="flex items-center gap-3" type="button" onClick={() => navigate('/dashboard')}>
         <span className="h-9 w-9 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 text-slate-950 font-black text-xs grid place-items-center">
-          ARC
+          GXI
         </span>
         <span className="text-left">
-          <span className="block text-sm text-white font-semibold leading-tight">Arclight CI Security</span>
+          <span className="block text-sm text-white font-semibold leading-tight">GateXAi</span>
           <span className="block text-[11px] text-slate-400">AI-powered release governance</span>
         </span>
       </button>

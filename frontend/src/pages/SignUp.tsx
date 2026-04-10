@@ -11,7 +11,7 @@ export const SignUpPage: React.FC = () => {
       <div className="bg-orb bg-orb-one" />
       <div className="bg-orb bg-orb-two" />
 
-      <div className="flex-1 px-6 flex items-center justify-center relative z-10">
+      <div className="flex-1 px-6 py-12 md:py-16 flex items-center justify-center relative z-10">
         <div className="w-full max-w-5xl grid lg:grid-cols-2 gap-8 items-stretch">
           <div className="glass-panel p-10 lg:p-12">
             <p className="text-cyan-300 text-xs tracking-[0.2em] uppercase mb-5">Workspace Onboarding</p>
@@ -44,6 +44,19 @@ export const SignUpPage: React.FC = () => {
                   signInUrl="/login"
                   forceRedirectUrl="/dashboard"
                   appearance={{
+                    elements: {
+                      socialButtonsRoot: 'grid gap-3',
+                      socialButtonsBlockButton:
+                        'rounded-xl border border-white/10 bg-[#0b1220] text-white shadow-none transition hover:bg-white/5',
+                      socialButtonsBlockButton__oauth_google:
+                        'bg-white text-slate-900 border-white hover:bg-slate-100',
+                      socialButtonsBlockButton__oauth_github:
+                        'bg-[#161b22] text-white border-white/10 hover:bg-[#0d1117]',
+                      socialButtonsBlockButtonText: 'font-semibold',
+                      socialButtonsProviderIcon: 'opacity-95',
+                      dividerLine: 'bg-white/10',
+                      dividerText: 'text-slate-500',
+                    },
                     variables: {
                       colorPrimary: '#3b82f6',
                       colorBackground: 'rgba(7, 14, 24, 0.45)',

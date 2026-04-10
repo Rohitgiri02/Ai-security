@@ -54,17 +54,29 @@ export const Landing: React.FC = () => {
           <div className="flex items-center justify-between gap-4">
             <a href="/" className="flex items-center gap-3 font-bold tracking-tight text-white">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-300 to-blue-500 flex items-center justify-center text-slate-950 text-sm shadow-lg shadow-cyan-500/20">
-                S
+                GXI
               </div>
               <span className="leading-tight">
-                <span className="block text-lg">SecurityAnalyzer</span>
+                <span className="block text-lg">GateXAi</span>
                 <span className="block text-xs font-medium text-slate-400">AI-powered release security</span>
               </span>
             </a>
 
-            <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
-              <a href="#features" className="hover:text-cyan-300 transition">Features</a>
-              <a href="#workflow" className="hover:text-cyan-300 transition">Workflow</a>
+            <div className="hidden md:flex items-center gap-3 text-sm font-medium text-slate-300">
+              <div className="flex items-center gap-2 rounded-full border border-cyan-400/10 bg-white/5 px-3 py-2 text-xs text-cyan-200">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_14px_rgba(52,211,153,0.8)]" />
+                Live monitoring
+              </div>
+
+              <a href="#features" className="rounded-full px-4 py-2 transition hover:bg-white/5 hover:text-cyan-300">
+                Features
+              </a>
+              <a href="#workflow" className="rounded-full px-4 py-2 transition hover:bg-white/5 hover:text-cyan-300">
+                Workflow
+              </a>
+              <a href="/login" className="rounded-full px-4 py-2 transition hover:bg-white/5 hover:text-cyan-300">
+                Sign in
+              </a>
               <a
                 href="/login"
                 className="px-5 py-2.5 bg-cyan-400 hover:bg-cyan-300 text-slate-950 rounded-full transition shadow-lg shadow-cyan-500/20"
@@ -86,16 +98,27 @@ export const Landing: React.FC = () => {
 
           <div
             className={`md:hidden overflow-hidden transition-all duration-300 ${
-              mobileMenuOpen ? 'max-h-48 opacity-100 mt-4' : 'max-h-0 opacity-0'
+              mobileMenuOpen ? 'max-h-72 opacity-100 mt-4' : 'max-h-0 opacity-0'
             }`}
           >
             <div className="rounded-2xl border border-cyan-400/10 bg-[#08111f]/95 backdrop-blur-xl p-4 shadow-2xl shadow-black/20">
-              <div className="flex flex-col gap-3 text-sm font-medium text-slate-300">
+              <div className="mb-4 flex items-center justify-between rounded-xl border border-cyan-400/10 bg-white/5 px-3 py-2 text-xs text-slate-300">
+                <span className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                  Live monitoring active
+                </span>
+                <span className="text-cyan-300">v2.0</span>
+              </div>
+
+              <div className="flex flex-col gap-2 text-sm font-medium text-slate-300">
                 <a href="#features" onClick={closeMobileMenu} className="rounded-lg px-3 py-2 hover:bg-cyan-400/10 hover:text-cyan-200 transition">
                   Features
                 </a>
                 <a href="#workflow" onClick={closeMobileMenu} className="rounded-lg px-3 py-2 hover:bg-cyan-400/10 hover:text-cyan-200 transition">
                   Workflow
+                </a>
+                <a href="/login" onClick={closeMobileMenu} className="rounded-lg px-3 py-2 hover:bg-cyan-400/10 hover:text-cyan-200 transition">
+                  Sign in
                 </a>
                 <a
                   href="/login"
@@ -144,9 +167,7 @@ export const Landing: React.FC = () => {
               <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" className="w-5 h-5 invert" alt="" />
               Continue with GitHub
             </a>
-            <button className="w-full sm:w-auto px-8 py-4 bg-slate-900/50 text-white rounded-xl font-bold border border-cyan-400/15 hover:bg-slate-900/80 hover:border-cyan-400/30 transition">
-              View Demo
-            </button>
+            
           </div>
         </div>
       </section>
