@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import {
   addProject,
   Analysis,
+  deleteProject,
   getMyProfile,
   getProjectDetails,
   getProjects,
@@ -41,6 +42,7 @@ interface AppState {
 
   loadProjects: () => Promise<void>;
   connectRepository: (owner: string, repo: string) => Promise<Project | null>;
+  removeProject: (projectId: string) => Promise<void>;
   loadProjectDetails: (projectId: string) => Promise<void>;
   loadScanReport: (projectId: string) => Promise<void>;
   triggerScan: (projectId: string) => Promise<void>;
@@ -114,6 +116,27 @@ export const useStore = create<AppState>((set, get) => ({
         message: error?.response?.data?.error || error.message || 'Unknown error',
       });
       return null;
+    }
+  },
+
+  removeProject: async (projectId: string) => {
+    try {
+      await deleteProject(projectId);
+      set((state) => ({
+        projects: state.projects.filter((project) => project._id !== projectId),
+        selectedProject: state.selectedProject?._id === projectId ? null : state.selectedProject,
+      }));
+      get().addToast({
+        type: 'success',
+        title: 'Project removed',
+        message: 'Repository disconnected successfully.',
+      });
+    } catch (error: any) {
+      get().addToast({
+        type: 'error',
+        title: 'Failed to remove project',
+        message: error?.response?.data?.error || error.message || 'Unknown error',
+      });
     }
   },
 

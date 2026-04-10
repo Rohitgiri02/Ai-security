@@ -37,6 +37,10 @@ export interface Analysis {
     scannedAt?: string;
     fileCount?: number;
     issuesValidated?: number;
+    trigger?: 'manual' | 'ci' | 'webhook';
+    source?: string;
+    branch?: string;
+    commitSha?: string;
   };
   analyzedAt?: string;
 }
@@ -94,6 +98,10 @@ export async function addProject(payload: { owner: string; repo: string }): Prom
 export async function getProjectDetails(projectId: string): Promise<Project> {
   const res = await api.get<Project>(`/projects/${projectId}`);
   return res.data;
+}
+
+export async function deleteProject(projectId: string): Promise<void> {
+  await api.delete(`/projects/${projectId}`);
 }
 
 export async function runProjectScan(projectId: string): Promise<Analysis> {

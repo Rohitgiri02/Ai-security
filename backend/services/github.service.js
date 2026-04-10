@@ -41,17 +41,112 @@ function isLikelyTextFile(fileName) {
   return ["dockerfile", "makefile", "readme"].some((name) => lower.includes(name));
 }
 
-function buildHeaders() {
+function buildHeaders(includeAuth = true) {
   const headers = {
     "Content-Type": "application/json",
     "User-Agent": "ai-cicd-security-analyzer",
   };
 
-  if (process.env.GITHUB_TOKEN) {
+  if (includeAuth && process.env.GITHUB_TOKEN) {
     headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
   }
 
   return headers;
+}
+
+async function ensureRepositoryExists(repo) {
+  const [owner, name] = repo.split("/");
+
+  if (!owner || !name) {
+    const error = new Error("Invalid repository format");
+    error.statusCode = 400;
+    error.publicMessage = "Invalid repository format. Use owner/repo";
+    throw error;
+  }
+
+  try {
+    const query = `
+      query {
+        repository(owner: "${owner}", name: "${name}") {
+          id
+          nameWithOwner
+        }
+      }
+    `;
+
+    const response = await axios.post(
+      GITHUB_GRAPHQL_URL,
+      { query },
+      {
+        headers: buildHeaders(),
+        timeout: 15000,
+      }
+    );
+
+    if (response.data.errors?.length) {
+      const errorMsg = response.data.errors[0]?.message || "GraphQL error";
+
+      if (errorMsg.includes("Could not resolve to a Repository") || errorMsg.includes("not found")) {
+        const notFound = new Error("GitHub repository not found");
+        notFound.statusCode = 404;
+        notFound.publicMessage = "Repository not found on GitHub";
+        throw notFound;
+      }
+
+      const graphqlError = new Error(errorMsg);
+      graphqlError.statusCode = 400;
+      graphqlError.publicMessage = errorMsg;
+      throw graphqlError;
+    }
+
+    if (!response.data.data?.repository) {
+      const error = new Error("Repository not accessible");
+      error.statusCode = 404;
+      error.publicMessage = "Repository not found or not accessible";
+      throw error;
+    }
+
+    return true;
+  } catch (error) {
+    const status = error?.response?.status;
+
+    if (status === 401 || status === 403) {
+      try {
+        // Fallback to public REST endpoint. This still validates public repositories
+        // even when a GitHub token is invalid, expired, or rate-limited.
+        const restResponse = await axios.get(`https://api.github.com/repos/${owner}/${name}`, {
+          headers: buildHeaders(false),
+          timeout: 15000,
+        });
+
+        if (restResponse.status === 200) {
+          return true;
+        }
+      } catch (fallbackError) {
+        const fallbackStatus = fallbackError?.response?.status;
+        if (fallbackStatus === 404) {
+          const notFound = new Error("GitHub repository not found");
+          notFound.statusCode = 404;
+          notFound.publicMessage = "Repository not found on GitHub";
+          throw notFound;
+        }
+      }
+
+      const accessError = new Error("GitHub access denied");
+      accessError.statusCode = 403;
+      accessError.publicMessage = "GitHub API access denied or rate-limited. Check GITHUB_TOKEN.";
+      throw accessError;
+    }
+
+    if (error.statusCode) {
+      throw error;
+    }
+
+    const unknown = new Error(`GitHub repository check failed: ${error.message}`);
+    unknown.statusCode = 502;
+    unknown.publicMessage = "Failed to verify repository on GitHub";
+    throw unknown;
+  }
 }
 
 async function fetchRepoCode(repo) {
@@ -218,5 +313,6 @@ async function fetchRepoCode(repo) {
 }
 
 module.exports = {
+  ensureRepositoryExists,
   fetchRepoCode,
 };

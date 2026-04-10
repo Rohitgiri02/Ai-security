@@ -15,6 +15,7 @@ export const Dashboard: React.FC = () => {
   const activeScanProjectId = useStore((state) => state.activeScanProjectId);
   const loadProjects = useStore((state) => state.loadProjects);
   const triggerScan = useStore((state) => state.triggerScan);
+  const removeProject = useStore((state) => state.removeProject);
 
   useEffect(() => {
     loadProjects();
@@ -23,11 +24,14 @@ export const Dashboard: React.FC = () => {
   const stats = useMemo(() => {
     const totalProjects = projects.length;
     const blockedDeployments = projects.filter((p) => p.latestAnalysis?.decision === 'block').length;
+    const automatedScans = projects.filter(
+      (p) => p.latestAnalysis?.meta?.trigger === 'ci' || p.latestAnalysis?.meta?.trigger === 'webhook'
+    ).length;
     const avgRisk = totalProjects
       ? Math.round(projects.reduce((sum, p) => sum + (p.latestAnalysis?.risk || 0), 0) / totalProjects)
       : 0;
 
-    return { totalProjects, blockedDeployments, avgRisk };
+    return { totalProjects, blockedDeployments, automatedScans, avgRisk };
   }, [projects]);
 
   const recentActivity = useMemo(() => {
@@ -65,12 +69,12 @@ export const Dashboard: React.FC = () => {
           <p className="text-3xl mt-2 font-semibold text-rose-300">{stats.blockedDeployments}</p>
         </Card>
         <Card className="p-5">
-          <p className="text-xs text-slate-400 uppercase tracking-wider">Average Risk</p>
-          <p className="text-3xl mt-2 font-semibold text-amber-200">{stats.avgRisk}</p>
+          <p className="text-xs text-slate-400 uppercase tracking-wider">Automated Scans</p>
+          <p className="text-3xl mt-2 font-semibold text-cyan-200">{stats.automatedScans}</p>
         </Card>
         <Card className="p-5">
-          <p className="text-xs text-slate-400 uppercase tracking-wider">Realtime Scan Status</p>
-          <p className="text-lg mt-3 font-semibold capitalize text-cyan-200">{scanStatus}</p>
+          <p className="text-xs text-slate-400 uppercase tracking-wider">Average Risk</p>
+          <p className="text-3xl mt-2 font-semibold text-amber-200">{stats.avgRisk}</p>
         </Card>
       </section>
 
@@ -98,6 +102,7 @@ export const Dashboard: React.FC = () => {
                 key={project._id}
                 project={project}
                 onScan={triggerScan}
+                onRemove={removeProject}
                 scanningProjectId={scanStatus === 'scanning' ? activeScanProjectId : null}
               />
             ))
@@ -116,6 +121,9 @@ export const Dashboard: React.FC = () => {
                   <p className="text-xs text-slate-400 mt-1">{formatDate(item.scannedAt)}</p>
                   <p className="text-xs mt-2 text-slate-300">
                     Risk {item.risk ?? 0} · {item.decision === 'block' ? 'Deployment Blocked' : 'Deployment Safe'}
+                  </p>
+                  <p className="text-[11px] mt-1 text-slate-500 uppercase tracking-wide">
+                    {projects.find((project) => project._id === item.id)?.latestAnalysis?.meta?.trigger || 'manual'} scan
                   </p>
                 </div>
               ))

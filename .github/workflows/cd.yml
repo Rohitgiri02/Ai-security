@@ -4,10 +4,98 @@ on:
   push:
     branches: ["main"]
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
+  security-gate:
+    name: Security Gate Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate gate configuration
+        run: |
+          if [ -z "${{ secrets.SECURITY_ANALYZER_BACKEND_URL }}" ]; then
+            echo "SECURITY_ANALYZER_BACKEND_URL is not configured"
+            exit 1
+          fi
+          if [ -z "${{ secrets.CI_WEBHOOK_TOKEN }}" ]; then
+            echo "CI_WEBHOOK_TOKEN is not configured"
+            exit 1
+          fi
+
+      - name: Run repository security analysis
+        id: analyze
+        env:
+          BACKEND_URL: ${{ secrets.SECURITY_ANALYZER_BACKEND_URL }}
+          CI_WEBHOOK_TOKEN: ${{ secrets.CI_WEBHOOK_TOKEN }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          response=$(curl -sS -X POST "${BACKEND_URL}/webhook/analyze-ci" \
+            -H "Content-Type: application/json" \
+            -H "x-ci-token: ${CI_WEBHOOK_TOKEN}" \
+            -d "{\"repo\":\"${REPO}\",\"branch\":\"${BRANCH}\",\"commitSha\":\"${COMMIT_SHA}\"}")
+
+          echo "$response" > security-analysis.json
+          echo "$response"
+
+          node -e "const fs=require('fs'); const d=JSON.parse(fs.readFileSync('security-analysis.json','utf8')); if(!d.decision){console.error('Invalid analysis response'); process.exit(1);} const out=process.env.GITHUB_OUTPUT; fs.appendFileSync(out, 'decision=' + d.decision + '\n'); fs.appendFileSync(out, 'risk=' + (d.risk ?? 0) + '\n'); fs.appendFileSync(out, 'issues=' + (d.issuesCount ?? 0) + '\n');"
+
+      - name: Create security report for blocked deployment
+        if: steps.analyze.outputs.decision == 'block'
+        run: |
+          mkdir -p reports
+          cat <<EOF > reports/security-gate-${{ github.run_id }}.md
+          # Security Gate Blocked Deployment
+
+          - Repository: ${{ github.repository }}
+          - Branch: ${{ github.ref_name }}
+          - Commit: ${{ github.sha }}
+          - Risk Score: ${{ steps.analyze.outputs.risk }}
+          - Verified Issues: ${{ steps.analyze.outputs.issues }}
+          - Decision: BLOCK
+
+          This report was generated automatically by the security gate workflow.
+          Deployment to production has been blocked until these risks are remediated.
+          EOF
+
+      - name: Open automated remediation PR
+        if: steps.analyze.outputs.decision == 'block'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          title: "chore(security): block deployment and request remediation"
+          branch: "security/auto-remediation-${{ github.run_id }}"
+          base: main
+          commit-message: "chore(security): add blocked deployment report"
+          body: |
+            Automated security gate blocked this production deployment.
+
+            - Risk score: ${{ steps.analyze.outputs.risk }}
+            - Verified issues: ${{ steps.analyze.outputs.issues }}
+            - Commit: ${{ github.sha }}
+
+            Please remediate the vulnerabilities and merge this PR after fixes are applied.
+          add-paths: |
+            reports/security-gate-${{ github.run_id }}.md
+          labels: |
+            security
+            automated-pr
+
+      - name: Fail pipeline when blocked
+        if: steps.analyze.outputs.decision == 'block'
+        run: |
+          echo "Security gate blocked deployment (risk=${{ steps.analyze.outputs.risk }})"
+          exit 1
+
   docker-build-and-push:
     name: Build and Push Docker Images
     runs-on: ubuntu-latest
+    needs: security-gate
     if: ${{ secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '' }}
     steps:
       - name: Checkout
@@ -41,7 +129,7 @@ jobs:
   deploy:
     name: Trigger Deployment Hook
     runs-on: ubuntu-latest
-    needs: docker-build-and-push
+    needs: [security-gate, docker-build-and-push]
     if: ${{ secrets.DEPLOY_WEBHOOK_URL != '' }}
     steps:
       - name: Trigger deployment

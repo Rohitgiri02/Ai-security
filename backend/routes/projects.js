@@ -3,7 +3,7 @@ const express = require('express');
 const Project = require('../models/Project');
 const User = require('../models/User');
 const { requireAuth } = require('../middleware/requireAuth');
-const { fetchRepoCode } = require('../services/github.service');
+const { fetchRepoCode, ensureRepositoryExists } = require('../services/github.service');
 const { scanCodeForPatterns, validateIssuesWithAI } = require('../services/scan.service');
 const { analyzeRiskWithAI } = require('../services/ai.service');
 const { fallbackRiskScore, decisionFromRisk } = require('../services/risk.service');
@@ -20,7 +20,7 @@ async function resolveUser(clerkId) {
   return user;
 }
 
-async function runRepositoryAnalysis(repoFullName) {
+async function runRepositoryAnalysis(repoFullName, metadata = {}) {
   const { combinedCode, fileCount } = await fetchRepoCode(repoFullName);
   const detectedPatterns = scanCodeForPatterns(combinedCode);
   const validatedIssues = await validateIssuesWithAI(detectedPatterns);
@@ -59,6 +59,10 @@ async function runRepositoryAnalysis(repoFullName) {
       issuesDetected: detectedPatterns.length,
       issuesValidated: validatedIssues.length,
       scannedAt: new Date().toISOString(),
+      trigger: metadata.trigger || 'manual',
+      branch: metadata.branch,
+      commitSha: metadata.commitSha,
+      source: metadata.source || 'dashboard',
     },
   };
 }
@@ -82,12 +86,21 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'owner and repo are required' });
     }
 
-    const fullName = `${owner}/${repo}`;
+    const safeOwner = String(owner).trim();
+    const safeRepo = String(repo).trim();
+
+    if (!/^[\w.-]+$/.test(safeOwner) || !/^[\w.-]+$/.test(safeRepo)) {
+      return res.status(400).json({ error: 'Invalid repository format. Use owner/repo' });
+    }
+
+    const fullName = `${safeOwner}/${safeRepo}`;
+
+    await ensureRepositoryExists(fullName);
 
     const project = await Project.create({
       userId: user._id,
-      owner,
-      repo,
+      owner: safeOwner,
+      repo: safeRepo,
       fullName,
     });
 
@@ -155,7 +168,10 @@ router.post('/:id/analyze', async (req, res) => {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    const analysis = await runRepositoryAnalysis(project.fullName);
+    const analysis = await runRepositoryAnalysis(project.fullName, {
+      trigger: 'manual',
+      source: 'dashboard',
+    });
     const analysisRecord = {
       ...analysis,
       analyzedAt: new Date(),

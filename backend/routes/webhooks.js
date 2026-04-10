@@ -1,5 +1,10 @@
 const express = require('express');
 const crypto = require('crypto');
+const Project = require('../models/Project');
+const { fetchRepoCode } = require('../services/github.service');
+const { scanCodeForPatterns, validateIssuesWithAI } = require('../services/scan.service');
+const { analyzeRiskWithAI } = require('../services/ai.service');
+const { fallbackRiskScore, decisionFromRisk } = require('../services/risk.service');
 const router = express.Router();
 
 // In-memory webhook events log
@@ -18,6 +23,123 @@ const verifyGithubSignature = (req, signature) => {
 
   return `sha256=${hash}` === signature;
 };
+
+const verifyCiToken = (req) => {
+  const expectedToken = process.env.CI_WEBHOOK_TOKEN;
+  if (!expectedToken) {
+    return false;
+  }
+
+  const providedToken = req.headers['x-ci-token'];
+  return providedToken === expectedToken;
+};
+
+async function runRepositoryAnalysis(repoFullName, metadata = {}) {
+  const { combinedCode, fileCount } = await fetchRepoCode(repoFullName);
+  const detectedPatterns = scanCodeForPatterns(combinedCode);
+  const validatedIssues = await validateIssuesWithAI(detectedPatterns);
+
+  let risk = fallbackRiskScore(validatedIssues);
+  let ai = {};
+
+  if (validatedIssues.length > 0) {
+    try {
+      ai = await analyzeRiskWithAI({ code: combinedCode, issues: validatedIssues });
+      if (typeof ai.risk === 'number') {
+        risk = ai.risk;
+      }
+    } catch (error) {
+      ai = {
+        summary: 'AI analysis unavailable. Fallback risk used.',
+        error: error.message,
+      };
+    }
+  } else {
+    ai = {
+      summary: 'No verified security vulnerabilities detected.',
+    };
+  }
+
+  const decision = decisionFromRisk(risk);
+
+  return {
+    risk,
+    decision,
+    issues: validatedIssues,
+    ai,
+    meta: {
+      repo: repoFullName,
+      fileCount,
+      issuesDetected: detectedPatterns.length,
+      issuesValidated: validatedIssues.length,
+      scannedAt: new Date().toISOString(),
+      trigger: metadata.trigger || 'webhook',
+      branch: metadata.branch,
+      commitSha: metadata.commitSha,
+      source: metadata.source || 'github',
+    },
+  };
+}
+
+async function persistAnalysisForRepo(repoFullName, analysis) {
+  const projects = await Project.find({ fullName: repoFullName });
+  if (!projects.length) {
+    return 0;
+  }
+
+  const analysisRecord = {
+    ...analysis,
+    analyzedAt: new Date(),
+  };
+
+  await Promise.all(
+    projects.map(async (project) => {
+      project.latestAnalysis = analysisRecord;
+      project.analyses = [analysisRecord, ...(project.analyses || [])].slice(0, 25);
+      await project.save();
+    })
+  );
+
+  return projects.length;
+}
+
+router.post('/analyze-ci', async (req, res) => {
+  try {
+    if (!verifyCiToken(req)) {
+      return res.status(401).json({ error: 'Invalid CI token' });
+    }
+
+    const { repo, branch, commitSha } = req.body || {};
+
+    if (!repo || typeof repo !== 'string' || !/^[^/\s]+\/[^/\s]+$/.test(repo)) {
+      return res.status(400).json({ error: 'Invalid repo format. Use owner/repo' });
+    }
+
+    const analysis = await runRepositoryAnalysis(repo, {
+      trigger: 'ci',
+      branch,
+      commitSha,
+      source: 'github-actions',
+    });
+
+    const projectsUpdated = await persistAnalysisForRepo(repo, analysis);
+
+    return res.json({
+      repository: repo,
+      decision: analysis.decision,
+      risk: analysis.risk,
+      issuesCount: analysis.issues.length,
+      projectsUpdated,
+      analysis,
+    });
+  } catch (error) {
+    console.error('[WEBHOOK_CI_ANALYZE] Failed', error.message);
+    return res.status(error.statusCode || 500).json({
+      error: error.publicMessage || 'Failed to analyze repository from CI',
+      details: process.env.NODE_ENV === 'production' ? undefined : error.message,
+    });
+  }
+});
 
 // POST GitHub webhook
 router.post('/github', async (req, res) => {
@@ -57,8 +179,27 @@ router.post('/github', async (req, res) => {
       console.log(`   Commits: ${commits.length}`);
       console.log(`   Analyzing code...`);
 
-      // In production, trigger analysis asynchronously
-      // For now, just acknowledge receipt
+      const commitSha = req.body.after;
+
+      // Handle analysis asynchronously so GitHub webhook delivery is fast.
+      setImmediate(async () => {
+        try {
+          const analysis = await runRepositoryAnalysis(repoFullName, {
+            trigger: 'webhook',
+            branch,
+            commitSha,
+            source: 'github-webhook',
+          });
+
+          const updated = await persistAnalysisForRepo(repoFullName, analysis);
+
+          console.log(
+            `[WEBHOOK_ANALYSIS] ${repoFullName} ${branch} risk=${analysis.risk} decision=${analysis.decision} updatedProjects=${updated}`
+          );
+        } catch (analysisError) {
+          console.error('[WEBHOOK_ANALYSIS] Failed', analysisError.message);
+        }
+      });
 
       return res.json({
         message: 'Webhook received',
