@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import Navbar from './components/Navbar';
+import { Footer } from './components/Footer';
 import { Sidebar } from './components/Sidebar';
 import { ToastHost } from './components/ToastHost';
 import { Landing } from './pages/Landing';
@@ -38,11 +39,12 @@ function ProtectedLayout() {
     <ProtectedRoute>
       <div className="min-h-screen bg-primary text-white lg:flex">
         <Sidebar />
-        <div className="flex-1 min-w-0">
+        <div className="flex min-w-0 flex-1 flex-col">
           <Navbar />
-          <main className="p-6 md:p-8 max-w-7xl mx-auto">
+          <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-6 pb-16 md:px-8 md:py-8 md:pb-20">
             <Outlet />
           </main>
+          <Footer className="mt-auto" />
         </div>
       </div>
     </ProtectedRoute>

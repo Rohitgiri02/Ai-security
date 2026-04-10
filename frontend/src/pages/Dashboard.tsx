@@ -45,7 +45,7 @@ export const Dashboard: React.FC = () => {
   }, [projects]);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-4 md:pb-0">
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-cyan-300 mb-2">Security Command Center</p>

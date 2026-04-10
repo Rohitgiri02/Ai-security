@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { RiskBadge, IssueCard } from '../components/SecurityComponents';
+import { Footer } from '../components/Footer';
 import { projectAPI, ProjectRecord } from '../services/api';
 
 interface Analysis {
@@ -73,25 +74,27 @@ export const ProjectDetail: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-primary text-white pt-20 px-6">
+      <div className="min-h-screen bg-primary text-white pt-20 px-6 flex flex-col">
         <div className="max-w-7xl mx-auto glass-panel p-8">Loading project details...</div>
+        <Footer className="mt-auto" />
       </div>
     );
   }
 
   if (error || !project) {
     return (
-      <div className="min-h-screen bg-primary text-white pt-20 px-6">
+      <div className="min-h-screen bg-primary text-white pt-20 px-6 flex flex-col">
         <div className="max-w-7xl mx-auto glass-panel border border-rose-400/30 p-8 text-rose-200">
           {error || 'Project not found'}
         </div>
+        <Footer className="mt-auto" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-primary text-white pt-20">
-      <div className="max-w-7xl mx-auto px-6 py-12">
+    <div className="min-h-screen bg-primary text-white pt-20 flex flex-col">
+      <div className="max-w-7xl mx-auto w-full px-6 py-12 flex-1">
         {/* Header */}
         <div className="mb-8">
           <button
@@ -252,6 +255,8 @@ export const ProjectDetail: React.FC = () => {
           </div>
         )}
       </div>
+
+      <Footer className="mt-auto" />
     </div>
   );
 };

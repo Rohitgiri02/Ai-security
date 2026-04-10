@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SignIn, useAuth } from '@clerk/clerk-react';
+import { Footer } from '../components/Footer';
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -17,11 +18,11 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-primary text-white relative overflow-hidden">
+    <div className="min-h-screen bg-primary text-white relative overflow-hidden flex flex-col">
       <div className="bg-orb bg-orb-one" />
       <div className="bg-orb bg-orb-two" />
 
-      <div className="min-h-screen px-6 flex items-center justify-center relative z-10">
+      <div className="flex-1 px-6 flex items-center justify-center relative z-10">
         <div className="w-full max-w-5xl grid lg:grid-cols-2 gap-8 items-stretch">
           <div className="glass-panel p-10 lg:p-12">
             <p className="text-cyan-300 text-xs tracking-[0.2em] uppercase mb-5">Secure Release Intelligence</p>
@@ -92,6 +93,8 @@ export const Login: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <Footer className="relative z-10" />
     </div>
   );
 };
