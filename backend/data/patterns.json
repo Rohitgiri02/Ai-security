@@ -1,0 +1,162 @@
+[
+  {
+    "id": "PAT-001",
+    "pattern": "eval(",
+    "risk": "Code Injection",
+    "severity": "critical",
+    "description": "Use of eval() can execute untrusted input as code, enabling arbitrary code execution.",
+    "fix": "Avoid eval(). Use safe parsing and strict input validation, or replace with explicit logic."
+  },
+  {
+    "id": "PAT-002",
+    "pattern": "password =",
+    "risk": "Credential Exposure",
+    "severity": "high",
+    "description": "Hardcoded credentials can leak through source control and be abused by attackers.",
+    "fix": "Move credentials to a secure secret manager or environment variables and rotate exposed secrets."
+  },
+  {
+    "id": "PAT-003",
+    "pattern": "api_key",
+    "risk": "Credential Exposure",
+    "severity": "high",
+    "description": "API keys or tokens hardcoded in source can be extracted and abused.",
+    "fix": "Store secrets in environment variables, vaults, or secret management systems."
+  },
+  {
+    "id": "PAT-004",
+    "pattern": "exec(",
+    "risk": "Code Injection / Command Injection",
+    "severity": "critical",
+    "description": "exec() function can execute arbitrary system commands if inputs are not sanitized.",
+    "fix": "Use parameterized execution or libraries that prevent command injection."
+  },
+  {
+    "id": "PAT-005",
+    "pattern": "sql = ",
+    "risk": "SQL Injection",
+    "severity": "critical",
+    "description": "String concatenation in SQL queries can enable SQL injection attacks.",
+    "fix": "Use prepared statements or parameterized queries (e.g., placeholders)."
+  },
+  {
+    "id": "PAT-006",
+    "pattern": "+ \" + ",
+    "risk": "SQL Injection",
+    "severity": "high",
+    "description": "String concatenation with quotes suggests potential SQL injection vulnerability.",
+    "fix": "Replace with parameterized queries and prepared statements."
+  },
+  {
+    "id": "PAT-007",
+    "pattern": "SELECT * FROM",
+    "risk": "SQL Injection Vulnerability Pattern",
+    "severity": "medium",
+    "description": "Unfiltered SELECT queries may indicate dynamic SQL construction.",
+    "fix": "Use ORM or parameterized queries to prevent SQL injection."
+  },
+  {
+    "id": "PAT-008",
+    "pattern": "innerHTML",
+    "risk": "Cross-Site Scripting (XSS)",
+    "severity": "high",
+    "description": "Direct innerHTML assignment can lead to DOM-based XSS if user input is not sanitized.",
+    "fix": "Use textContent or DOM APIs instead; sanitize HTML with libraries like DOMPurify."
+  },
+  {
+    "id": "PAT-009",
+    "pattern": "dangerouslySetInnerHTML",
+    "risk": "Cross-Site Scripting (XSS)",
+    "severity": "high",
+    "description": "React's dangerouslySetInnerHTML bypasses XSS protections; risky if data is untrusted.",
+    "fix": "Avoid this API; sanitize HTML with DOMPurify or use safe alternatives."
+  },
+  {
+    "id": "PAT-010",
+    "pattern": "jwt.verify",
+    "risk": "JWT Signature Verification",
+    "severity": "medium",
+    "description": "If JWT verification is misconfigured, it can be bypassed.",
+    "fix": "Ensure algorithms are explicitly specified and 'none' algorithm is disabled."
+  },
+  {
+    "id": "PAT-011",
+    "pattern": "crypto.randomBytes",
+    "risk": "Weak Randomness",
+    "severity": "medium",
+    "description": "If randomBytes is misused or insufficient entropy, security is compromised.",
+    "fix": "Use adequate entropy; crypto.randomBytes(32+) for tokens."
+  },
+  {
+    "id": "PAT-012",
+    "pattern": "md5",
+    "risk": "Weak Cryptography",
+    "severity": "high",
+    "description": "MD5 is cryptographically broken and should not be used for security.",
+    "fix": "Use SHA-256 or bcrypt for password hashing, SHA-256+ for general hashing."
+  },
+  {
+    "id": "PAT-013",
+    "pattern": "sha1",
+    "risk": "Weak Cryptography",
+    "severity": "high",
+    "description": "SHA-1 is deprecated; collision attacks are feasible.",
+    "fix": "Migrate to SHA-256 or stronger algorithms."
+  },
+  {
+    "id": "PAT-014",
+    "pattern": "process.env",
+    "risk": "Environment Variable Access",
+    "severity": "low",
+    "description": "Accessing environment variables can leak sensitive data if misconfigured.",
+    "fix": "Validate and sanitize environment variables; use secret management tools."
+  },
+  {
+    "id": "PAT-015",
+    "pattern": "require.cache",
+    "risk": "Module Cache Poisoning",
+    "severity": "medium",
+    "description": "Direct manipulation of require.cache can introduce unexpected behavior.",
+    "fix": "Avoid modifying require.cache; use proper module management."
+  },
+  {
+    "id": "PAT-016",
+    "pattern": "global.",
+    "risk": "Global Scope Pollution",
+    "severity": "medium",
+    "description": "Assigning to global scope can cause namespace pollution and conflicts.",
+    "fix": "Use local variables or module-scoped variables instead."
+  },
+  {
+    "id": "PAT-017",
+    "pattern": "TODO:",
+    "risk": "Incomplete Security Implementation",
+    "severity": "low",
+    "description": "TODO comments indicate unfinished work that may have security implications.",
+    "fix": "Complete the implementation or add a security review ticket."
+  },
+  {
+    "id": "PAT-018",
+    "pattern": "FIXME:",
+    "risk": "Known Issue",
+    "severity": "low",
+    "description": "FIXME comments indicate acknowledged bugs or issues.",
+    "fix": "Address the issue or document why it cannot be fixed."
+  },
+  {
+    "id": "PAT-019",
+    "pattern": ":password",
+    "risk": "Credential Exposure",
+    "severity": "high",
+    "description": "URLs with embedded passwords (user:password@host) leak credentials.",
+    "fix": "Move credentials to environment variables or secure storage."
+  },
+  {
+    "id": "PAT-020",
+    "pattern": "children",
+    "risk": "Potential DOM or Component Injection",
+    "severity": "low",
+    "description": "Unvalidated children in React/Vue components can introduce XSS.",
+    "fix": "Validate and sanitize children if they contain user input."
+  }
+]
