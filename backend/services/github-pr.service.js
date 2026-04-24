@@ -87,6 +87,23 @@ async function resolveBaseBranchSha(owner, repo, baseBranch) {
   return sha;
 }
 
+async function resolveFileShaIfExists(owner, repo, filePath, branch) {
+  try {
+    const existingFile = await githubRequest(
+      'GET',
+      `/repos/${owner}/${repo}/contents/${encodeURIComponent(filePath)}?ref=${encodeURIComponent(branch)}`
+    );
+
+    return existingFile?.sha || null;
+  } catch (error) {
+    if (error.statusCode === 404) {
+      return null;
+    }
+
+    throw error;
+  }
+}
+
 function buildWorkflowContent() {
   const backendUrl = getPublicBackendUrl();
 
@@ -166,11 +183,19 @@ async function createWorkflowInjectionPr(repoFullName) {
     sha: baseSha,
   });
 
-  await githubRequest('PUT', `/repos/${owner}/${repo}/contents/${encodeURIComponent(WORKFLOW_FILE_PATH)}`, {
+  const existingWorkflowSha = await resolveFileShaIfExists(owner, repo, WORKFLOW_FILE_PATH, branchName);
+
+  const contentPayload = {
     message: 'feat(security): add automated analysis workflow',
     content: Buffer.from(buildWorkflowContent()).toString('base64'),
     branch: branchName,
-  });
+  };
+
+  if (existingWorkflowSha) {
+    contentPayload.sha = existingWorkflowSha;
+  }
+
+  await githubRequest('PUT', `/repos/${owner}/${repo}/contents/${encodeURIComponent(WORKFLOW_FILE_PATH)}`, contentPayload);
 
   const pullRequest = await githubRequest('POST', `/repos/${owner}/${repo}/pulls`, {
     title: 'feat(security): add automated security gate workflow',
