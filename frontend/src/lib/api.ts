@@ -50,6 +50,12 @@ export interface Project {
   owner: string;
   repo: string;
   fullName: string;
+  workflowPrUrl?: string;
+  workflowPrNumber?: number | null;
+  workflowPrBranch?: string;
+  workflowPrStatus?: string;
+  workflowFilePath?: string;
+  workflowThreshold?: number;
   latestAnalysis?: Analysis | null;
   analyses?: Analysis[];
   createdAt: string;

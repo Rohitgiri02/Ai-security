@@ -4,6 +4,7 @@ const Project = require('../models/Project');
 const User = require('../models/User');
 const { requireAuth } = require('../middleware/requireAuth');
 const { fetchRepoCode, ensureRepositoryExists } = require('../services/github.service');
+const { createWorkflowInjectionPr, WORKFLOW_FILE_PATH, WORKFLOW_THRESHOLD } = require('../services/github-pr.service');
 const { scanCodeForPatterns, validateIssuesWithAI } = require('../services/scan.service');
 const { analyzeRiskWithAI } = require('../services/ai.service');
 const { fallbackRiskScore, decisionFromRisk } = require('../services/risk.service');
@@ -95,13 +96,27 @@ router.post('/', async (req, res) => {
 
     const fullName = `${safeOwner}/${safeRepo}`;
 
+    const existingProject = await Project.findOne({ userId: user._id, fullName });
+    if (existingProject) {
+      return res.status(409).json({ error: 'Project already exists' });
+    }
+
     await ensureRepositoryExists(fullName);
+
+    const workflowPr = await createWorkflowInjectionPr(fullName);
 
     const project = await Project.create({
       userId: user._id,
       owner: safeOwner,
       repo: safeRepo,
       fullName,
+      defaultBranch: workflowPr.baseBranch,
+      workflowPrUrl: workflowPr.prUrl,
+      workflowPrNumber: workflowPr.prNumber,
+      workflowPrBranch: workflowPr.branchName,
+      workflowPrStatus: workflowPr.prState,
+      workflowFilePath: WORKFLOW_FILE_PATH,
+      workflowThreshold: WORKFLOW_THRESHOLD,
     });
 
     res.status(201).json(project);
@@ -110,7 +125,7 @@ router.post('/', async (req, res) => {
       return res.status(409).json({ error: 'Project already exists' });
     }
 
-    res.status(500).json({ error: error.message });
+    res.status(error.statusCode || 500).json({ error: error.publicMessage || error.message });
   }
 });
 

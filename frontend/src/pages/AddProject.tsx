@@ -38,9 +38,11 @@ export const AddProject: React.FC = () => {
 
     await triggerScan(project._id);
 
-    const fakePrUrl = `https://github.com/${parsed.owner}/${parsed.repo}/pull/1`;
-    setCreatedPrUrl(fakePrUrl);
-    setMessage('Pull Request created successfully');
+    setCreatedPrUrl(project.workflowPrUrl || null);
+    setMessage(project.workflowPrUrl
+      ? 'GitHub Action PR created. Review and merge it in the repository.'
+      : 'Project connected successfully. Workflow PR was not returned.'
+    );
     setRepoUrl('');
     setIsSubmitting(false);
   };
@@ -84,7 +86,7 @@ export const AddProject: React.FC = () => {
         {createdPrUrl && (
           <div className="mt-4">
             <Button type="button" onClick={() => window.open(createdPrUrl, '_blank', 'noopener,noreferrer')}>
-              View PR
+              Review GitHub Action PR
             </Button>
           </div>
         )}

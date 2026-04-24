@@ -56,6 +56,11 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onScan, onRem
       <div className="flex flex-wrap gap-2">
         <Button variant="secondary" onClick={() => navigate(`/project/${project._id}`)}>Project Details</Button>
         <Button variant="outline" onClick={() => navigate(`/scan-report/${project._id}`)}>Scan Report</Button>
+        {project.workflowPrUrl && (
+          <Button variant="secondary" onClick={() => window.open(project.workflowPrUrl, '_blank', 'noopener,noreferrer')}>
+            Review Action PR
+          </Button>
+        )}
         <Button
           onClick={() => onScan(project._id)}
           disabled={scanningProjectId === project._id}
