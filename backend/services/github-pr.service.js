@@ -4,6 +4,19 @@ const GITHUB_API_BASE = 'https://api.github.com';
 const WORKFLOW_FILE_PATH = '.github/workflows/security-gate.yml';
 const WORKFLOW_THRESHOLD = 50;
 
+function getPublicBackendUrl() {
+  const backendUrl = (process.env.BACKEND_PUBLIC_URL || '').trim();
+
+  if (!backendUrl) {
+    const error = new Error('BACKEND_PUBLIC_URL is required to generate workflow file');
+    error.statusCode = 500;
+    error.publicMessage = 'Backend public URL is not configured';
+    throw error;
+  }
+
+  return backendUrl.replace(/\/$/, '');
+}
+
 function getAuthHeaders() {
   if (!process.env.GITHUB_TOKEN) {
     const error = new Error('GITHUB_TOKEN is required to create workflow PRs');
@@ -43,6 +56,8 @@ async function githubRequest(method, path, data) {
 }
 
 function buildWorkflowContent() {
+  const backendUrl = getPublicBackendUrl();
+
   return `name: Security Gate
 
 on:
@@ -68,20 +83,12 @@ jobs:
         id: analysis
         shell: bash
         env:
-          BACKEND_URL: ${'$'}{{ secrets.SECURITY_ANALYZER_BACKEND_URL }}
-          CI_WEBHOOK_TOKEN: ${'$'}{{ secrets.CI_WEBHOOK_TOKEN }}
           REPOSITORY: ${'$'}{{ github.repository }}
           BRANCH: ${'$'}{{ github.ref_name }}
           COMMIT_SHA: ${'$'}{{ github.sha }}
         run: |
-          if [ -z "$BACKEND_URL" ] || [ -z "$CI_WEBHOOK_TOKEN" ]; then
-            echo "Missing SECURITY_ANALYZER_BACKEND_URL or CI_WEBHOOK_TOKEN"
-            exit 1
-          fi
-
-          response=$(curl -sS -X POST "$BACKEND_URL/webhook/analyze-ci" \
+          response=$(curl -sS -X POST "${backendUrl}/webhook/analyze-ci" \
             -H "Content-Type: application/json" \
-            -H "x-ci-token: $CI_WEBHOOK_TOKEN" \
             -d "{\"repo\":\"$REPOSITORY\",\"branch\":\"$BRANCH\",\"commitSha\":\"$COMMIT_SHA\"}")
 
           echo "$response" > security-analysis.json
@@ -140,9 +147,9 @@ async function createWorkflowInjectionPr(repoFullName) {
     body: [
       'This PR adds the GitHub Action that runs automated security analysis on every push and pull request.',
       '',
-      'Required repository secrets after merge:',
-      '- SECURITY_ANALYZER_BACKEND_URL',
-      '- CI_WEBHOOK_TOKEN',
+      `Backend analyzer URL is baked into this workflow: ${getPublicBackendUrl()}`,
+      '',
+      'No repository secrets are required for testing mode.',
       '',
       `The workflow blocks when the backend analysis reports a risk score above ${WORKFLOW_THRESHOLD}.`,
     ].join('\n'),

@@ -24,16 +24,6 @@ const verifyGithubSignature = (req, signature) => {
   return `sha256=${hash}` === signature;
 };
 
-const verifyCiToken = (req) => {
-  const expectedToken = process.env.CI_WEBHOOK_TOKEN;
-  if (!expectedToken) {
-    return false;
-  }
-
-  const providedToken = req.headers['x-ci-token'];
-  return providedToken === expectedToken;
-};
-
 async function runRepositoryAnalysis(repoFullName, metadata = {}) {
   const { combinedCode, fileCount } = await fetchRepoCode(repoFullName);
   const detectedPatterns = scanCodeForPatterns(combinedCode);
@@ -105,10 +95,6 @@ async function persistAnalysisForRepo(repoFullName, analysis) {
 
 router.post('/analyze-ci', async (req, res) => {
   try {
-    if (!verifyCiToken(req)) {
-      return res.status(401).json({ error: 'Invalid CI token' });
-    }
-
     const { repo, branch, commitSha } = req.body || {};
 
     if (!repo || typeof repo !== 'string' || !/^[^/\s]+\/[^/\s]+$/.test(repo)) {
