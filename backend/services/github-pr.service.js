@@ -55,6 +55,38 @@ async function githubRequest(method, path, data) {
   }
 }
 
+async function resolveBaseBranchSha(owner, repo, baseBranch) {
+  // Try direct ref lookup first.
+  try {
+    const branchRef = await githubRequest(
+      'GET',
+      `/repos/${owner}/${repo}/git/ref/heads/${encodeURIComponent(baseBranch)}`
+    );
+
+    if (branchRef?.object?.sha) {
+      return branchRef.object.sha;
+    }
+  } catch (error) {
+    // Continue to fallback path.
+  }
+
+  // Fallback: resolve SHA via branch details endpoint.
+  const branchDetails = await githubRequest(
+    'GET',
+    `/repos/${owner}/${repo}/branches/${encodeURIComponent(baseBranch)}`
+  );
+
+  const sha = branchDetails?.commit?.sha;
+  if (!sha) {
+    const err = new Error(`Unable to resolve base branch SHA for ${baseBranch}`);
+    err.statusCode = 422;
+    err.publicMessage = 'Failed to resolve repository default branch commit SHA';
+    throw err;
+  }
+
+  return sha;
+}
+
 function buildWorkflowContent() {
   const backendUrl = getPublicBackendUrl();
 
@@ -127,11 +159,11 @@ async function createWorkflowInjectionPr(repoFullName) {
   const repoInfo = await githubRequest('GET', `/repos/${owner}/${repo}`);
   const baseBranch = repoInfo.default_branch;
   const branchName = `security/analyzer-${Date.now()}`;
+  const baseSha = await resolveBaseBranchSha(owner, repo, baseBranch);
 
-  const branchRef = await githubRequest('GET', `/repos/${owner}/${repo}/git/ref/heads/${encodeURIComponent(baseBranch)}`);
   await githubRequest('POST', `/repos/${owner}/${repo}/git/refs`, {
     ref: `refs/heads/${branchName}`,
-    sha: branchRef.object.sha,
+    sha: baseSha,
   });
 
   await githubRequest('PUT', `/repos/${owner}/${repo}/contents/${encodeURIComponent(WORKFLOW_FILE_PATH)}`, {
