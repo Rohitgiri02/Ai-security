@@ -1,5 +1,8 @@
 import axios from 'axios';
 
+const configuredBackend = (import.meta.env.VITE_BACKEND_URL || '').trim();
+const API_BASE = configuredBackend ? configuredBackend.replace(/\/$/, '') : '/api';
+
 export type RiskDecision = 'allow' | 'block';
 
 type TokenGetter = () => Promise<string | null>;
@@ -77,7 +80,7 @@ export interface UserProfile {
 }
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE,
   headers: {
     'Content-Type': 'application/json',
   },

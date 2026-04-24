@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE = '/api';
+const configuredBackend = (import.meta.env.VITE_BACKEND_URL || '').trim();
+const API_BASE = configuredBackend ? configuredBackend.replace(/\/$/, '') : '/api';
 
 type TokenGetter = () => Promise<string | null>;
 

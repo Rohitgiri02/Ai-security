@@ -125,6 +125,14 @@ router.post('/', async (req, res) => {
       return res.status(409).json({ error: 'Project already exists' });
     }
 
+    // Surface actionable guidance when GitHub API denies repository access
+    // during workflow PR injection.
+    if (error.statusCode === 404 || error.statusCode === 403) {
+      return res.status(error.statusCode).json({
+        error: `GitHub access failed while creating workflow PR: ${error.publicMessage || error.message}. Ensure GITHUB_TOKEN can access this repository with Contents (write) and Pull requests (write).`,
+      });
+    }
+
     res.status(error.statusCode || 500).json({ error: error.publicMessage || error.message });
   }
 });
