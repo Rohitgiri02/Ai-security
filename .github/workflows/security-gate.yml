@@ -1,0 +1,58 @@
+name: Security Gate
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Request security analysis
+        id: analysis
+        shell: bash
+        env:
+          BACKEND_URL: ${{ secrets.SECURITY_ANALYZER_BACKEND_URL }}
+          CI_WEBHOOK_TOKEN: ${{ secrets.CI_WEBHOOK_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          if [ -z "$BACKEND_URL" ] || [ -z "$CI_WEBHOOK_TOKEN" ]; then
+            echo "Missing SECURITY_ANALYZER_BACKEND_URL or CI_WEBHOOK_TOKEN"
+            exit 1
+          fi
+
+          response=$(curl -sS -X POST "$BACKEND_URL/webhook/analyze-ci"             -H "Content-Type: application/json"             -H "x-ci-token: $CI_WEBHOOK_TOKEN"             -d "{"repo":"$REPOSITORY","branch":"$BRANCH","commitSha":"$COMMIT_SHA"}")
+
+          echo "$response" > security-analysis.json
+
+          risk=$(node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync('security-analysis.json', 'utf8')); process.stdout.write(String(data.risk ?? 0));")
+          decision=$(node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync('security-analysis.json', 'utf8')); process.stdout.write(String(data.decision ?? 'allow'));")
+
+          echo "risk=$risk" >> "$GITHUB_OUTPUT"
+          echo "decision=$decision" >> "$GITHUB_OUTPUT"
+
+      - name: Block deployment when risk is above threshold
+        shell: bash
+        run: |
+          risk="${{ steps.analysis.outputs.risk }}"
+          if [ -z "$risk" ]; then
+            risk=0
+          fi
+
+          if [ "$risk" -gt 50 ]; then
+            echo "Security risk is $risk, which is above the allowed threshold of 50."
+            exit 1
+          fi
