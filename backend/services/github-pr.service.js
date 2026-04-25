@@ -136,13 +136,19 @@ jobs:
           BRANCH: ${'$'}{{ github.ref_name }}
           COMMIT_SHA: ${'$'}{{ github.sha }}
         run: |
-          response=$(curl -sS -X POST "${backendUrl}/webhook/analyze-ci" \
+          http_code=$(curl -sS -o security-analysis.json -w "%{http_code}" -X POST "${backendUrl}/webhook/analyze-ci" \
             -H "Content-Type: application/json" \
             -d "{\"repo\":\"$REPOSITORY\",\"branch\":\"$BRANCH\",\"commitSha\":\"$COMMIT_SHA\"}")
 
-          echo "$response" > security-analysis.json
+          echo "Analyzer HTTP status: $http_code"
+          cat security-analysis.json
 
-          risk=$(node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync('security-analysis.json', 'utf8')); process.stdout.write(String(data.risk ?? 0));")
+          if [ "$http_code" -lt 200 ] || [ "$http_code" -ge 300 ]; then
+            echo "Analyzer request failed with status $http_code"
+            exit 1
+          fi
+
+          risk=$(node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync('security-analysis.json', 'utf8')); if (data.error) { console.error(data.error); process.exit(1); } if (typeof data.risk !== 'number' || Number.isNaN(data.risk)) { console.error('Analyzer did not return numeric risk'); process.exit(1); } process.stdout.write(String(Math.round(data.risk)));")
           decision=$(node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync('security-analysis.json', 'utf8')); process.stdout.write(String(data.decision ?? 'allow'));")
 
           echo "risk=$risk" >> "$GITHUB_OUTPUT"
