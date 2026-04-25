@@ -136,9 +136,11 @@ jobs:
           BRANCH: ${'$'}{{ github.ref_name }}
           COMMIT_SHA: ${'$'}{{ github.sha }}
         run: |
+          payload=$(printf '{"repo":"%s","branch":"%s","commitSha":"%s"}' "$REPOSITORY" "$BRANCH" "$COMMIT_SHA")
+
           http_code=$(curl -sS -o security-analysis.json -w "%{http_code}" -X POST "${backendUrl}/webhook/analyze-ci" \
             -H "Content-Type: application/json" \
-            -d "{\"repo\":\"$REPOSITORY\",\"branch\":\"$BRANCH\",\"commitSha\":\"$COMMIT_SHA\"}")
+            --data "$payload")
 
           echo "Analyzer HTTP status: $http_code"
           cat security-analysis.json
