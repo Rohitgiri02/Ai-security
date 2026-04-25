@@ -43,6 +43,36 @@ function getContextLines(lines, lineIndex, contextLines = 2) {
   return lines.slice(start, end).join("\n");
 }
 
+function isLikelyCommentOnlyLine(line) {
+  const trimmed = String(line || "").trim();
+  if (!trimmed) {
+    return true;
+  }
+
+  return (
+    trimmed.startsWith("//") ||
+    trimmed.startsWith("/*") ||
+    trimmed.startsWith("*") ||
+    trimmed.startsWith("#") ||
+    trimmed.startsWith("--")
+  );
+}
+
+function matchPattern(entry, normalizedLine) {
+  if (entry.regex) {
+    try {
+      const regex = new RegExp(entry.regex, entry.flags || "");
+      return regex.test(normalizedLine);
+    } catch (error) {
+      console.warn(`[SCAN] Invalid regex for pattern ${entry.id}: ${error.message}`);
+      return false;
+    }
+  }
+
+  const patternLower = String(entry.pattern || "").toLowerCase();
+  return patternLower && normalizedLine.includes(patternLower);
+}
+
 function scanCodeForPatterns(code) {
   if (!code || typeof code !== "string") {
     return [];
@@ -50,6 +80,7 @@ function scanCodeForPatterns(code) {
 
   const lines = code.split("\n");
   const detectedIssues = [];
+  const seen = new Set();
   let currentFile = "unknown";
   let fileLineOffset = 0;
 
@@ -72,12 +103,22 @@ function scanCodeForPatterns(code) {
     const lineNumber = globalLineIdx - fileLineOffset + 1;
     const normalizedLine = line.toLowerCase();
 
+    // Ignore comment-only lines to reduce obvious false positives.
+    if (isLikelyCommentOnlyLine(line)) {
+      return;
+    }
+
     // Check each pattern
     patterns.forEach((entry) => {
-      const patternLower = String(entry.pattern || "").toLowerCase();
+      if (matchPattern(entry, normalizedLine)) {
+        const patternLower = String(entry.pattern || "").toLowerCase();
+        const columnIndex = patternLower ? normalizedLine.indexOf(patternLower) : -1;
+        const issueKey = `${entry.id}:${currentFile}:${Math.max(1, lineNumber)}`;
 
-      if (patternLower && normalizedLine.includes(patternLower)) {
-        const columnIndex = normalizedLine.indexOf(patternLower);
+        if (seen.has(issueKey)) {
+          return;
+        }
+        seen.add(issueKey);
 
         // Get context for LLM validation
         const context = getContextLines(lines, globalLineIdx, 3);

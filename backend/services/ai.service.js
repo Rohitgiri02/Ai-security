@@ -116,8 +116,8 @@ Return ONLY valid JSON with:
     return parsed.isRealVulnerability === true;
   } catch (error) {
     console.error(`[AI] Validation error: ${error.message}`);
-    // On error, exclude the issue (default to safe filtering)
-    return false;
+    // Propagate so caller can keep finding with low confidence fallback.
+    throw error;
   }
 }
 

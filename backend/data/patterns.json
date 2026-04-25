@@ -158,5 +158,107 @@
     "severity": "low",
     "description": "Unvalidated children in React/Vue components can introduce XSS.",
     "fix": "Validate and sanitize children if they contain user input."
+  },
+  {
+    "id": "PAT-021",
+    "pattern": "execsync(",
+    "risk": "Command Injection",
+    "severity": "critical",
+    "description": "execSync can execute shell commands and is dangerous with untrusted input.",
+    "fix": "Use spawn/execFile with explicit arguments and strict input validation."
+  },
+  {
+    "id": "PAT-022",
+    "pattern": "new function(",
+    "risk": "Dynamic Code Execution",
+    "severity": "critical",
+    "description": "Function constructor executes dynamically generated code, similar to eval.",
+    "fix": "Avoid dynamic code generation and use explicit logic paths."
+  },
+  {
+    "id": "PAT-023",
+    "pattern": "pickle.loads",
+    "risk": "Insecure Deserialization",
+    "severity": "critical",
+    "description": "Python pickle deserialization can execute arbitrary code if input is untrusted.",
+    "fix": "Avoid pickle for untrusted data; use json or a safer serialization format."
+  },
+  {
+    "id": "PAT-024",
+    "pattern": "yaml.load(",
+    "risk": "Unsafe YAML Deserialization",
+    "severity": "high",
+    "description": "yaml.load may deserialize arbitrary objects depending on loader configuration.",
+    "fix": "Use safe_load/safe parser modes and never parse untrusted YAML unsafely."
+  },
+  {
+    "id": "PAT-025",
+    "pattern": "runtime.getruntime().exec(",
+    "risk": "Command Injection",
+    "severity": "critical",
+    "description": "Java Runtime.exec can execute shell/system commands from untrusted sources.",
+    "fix": "Avoid direct command execution or strictly validate and parameterize inputs."
+  },
+  {
+    "id": "PAT-026",
+    "pattern": "setdisablecertificateverification(true)",
+    "risk": "TLS Verification Disabled",
+    "severity": "high",
+    "description": "Disabling certificate validation enables man-in-the-middle attacks.",
+    "fix": "Enable strict TLS verification and use trusted CA certificates."
+  },
+  {
+    "id": "PAT-027",
+    "pattern": "verify=false",
+    "risk": "TLS Verification Disabled",
+    "severity": "high",
+    "description": "Requests configured with verify=false skip TLS certificate checks.",
+    "fix": "Set verify to true and use valid certificate trust chains."
+  },
+  {
+    "id": "PAT-028",
+    "pattern": "http://",
+    "risk": "Insecure Transport",
+    "severity": "medium",
+    "description": "Plain HTTP transmits data unencrypted and is vulnerable to interception.",
+    "fix": "Use HTTPS endpoints and enforce TLS for all external communication."
+  },
+  {
+    "id": "PAT-029",
+    "pattern": "authorization: basic",
+    "risk": "Weak Authentication Scheme",
+    "severity": "medium",
+    "description": "Basic auth may expose credentials if transport/security controls are weak.",
+    "fix": "Use stronger auth mechanisms (OAuth/JWT/mTLS) with secure transport."
+  },
+  {
+    "id": "PAT-030",
+    "regex": "ghp_[A-Za-z0-9]{36}",
+    "flags": "g",
+    "pattern": "ghp_...",
+    "risk": "GitHub Token Exposure",
+    "severity": "critical",
+    "description": "A GitHub personal access token pattern appears hardcoded in source.",
+    "fix": "Revoke the token immediately, rotate secrets, and move tokens to secure secret storage."
+  },
+  {
+    "id": "PAT-031",
+    "regex": "AKIA[0-9A-Z]{16}",
+    "flags": "g",
+    "pattern": "AKIA...",
+    "risk": "AWS Access Key Exposure",
+    "severity": "critical",
+    "description": "A possible AWS access key appears in source code.",
+    "fix": "Deactivate leaked keys and store credentials in a secret manager/role-based auth."
+  },
+  {
+    "id": "PAT-032",
+    "regex": "(sk_live_[A-Za-z0-9]{16,}|AIza[0-9A-Za-z_\\-]{20,})",
+    "flags": "g",
+    "pattern": "API secret key pattern",
+    "risk": "Secret Key Exposure",
+    "severity": "critical",
+    "description": "A provider secret key pattern appears hardcoded in source.",
+    "fix": "Rotate the key and move it to environment-managed secrets."
   }
 ]

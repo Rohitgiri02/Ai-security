@@ -20,10 +20,23 @@ export const IssueCard: React.FC<IssueCardProps> = ({ issue }) => {
     () => `This issue is risky because ${issue.risk.toLowerCase()} can be exploited when untrusted data reaches this code path. Apply the suggested fix and add a regression test for the vulnerable flow.`,
     [issue.risk]
   );
+  const patchSnippet = useMemo(() => {
+    const vulnerable = issue.code || '// vulnerable code';
+    const safeFix = issue.fix || '// apply secure fix';
+    return ['// Before (vulnerable)', vulnerable, '', '// After (suggested fix)', safeFix].join('\n');
+  }, [issue.code, issue.fix]);
 
   const copyFix = async () => {
     try {
       await navigator.clipboard.writeText(issue.fix);
+    } catch {
+      // Clipboard failures are non-critical for UX.
+    }
+  };
+
+  const copyPatch = async () => {
+    try {
+      await navigator.clipboard.writeText(patchSnippet);
     } catch {
       // Clipboard failures are non-critical for UX.
     }
@@ -48,7 +61,17 @@ export const IssueCard: React.FC<IssueCardProps> = ({ issue }) => {
       <div className="rounded-lg bg-[#071320] border border-white/10 p-3">
         <p className="text-xs uppercase tracking-wide text-slate-400 mb-2">Fix Suggestion</p>
         <p className="text-sm text-slate-200">{issue.fix}</p>
-        <Button variant="outline" className="mt-3" onClick={copyFix}>Copy fix</Button>
+        <div className="flex flex-wrap gap-2 mt-3">
+          <Button variant="outline" onClick={copyFix}>Copy fix</Button>
+          <Button variant="secondary" onClick={copyPatch}>Copy patch</Button>
+        </div>
+      </div>
+
+      <div className="rounded-lg bg-[#071320] border border-white/10 p-3">
+        <p className="text-xs uppercase tracking-wide text-slate-400 mb-2">Suggested Patch</p>
+        <pre className="rounded-lg bg-[#060f19] border border-white/10 p-3 overflow-x-auto text-xs text-cyan-200 font-mono">
+          <code>{patchSnippet}</code>
+        </pre>
       </div>
 
       <button
