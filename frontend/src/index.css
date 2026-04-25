@@ -1,141 +1,441 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-* {
+/* ─── Base Reset ─────────────────────────────────────────────────────────── */
+*, *::before, *::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-body {
-  font-family: 'Manrope', 'Segoe UI', sans-serif;
-  background: radial-gradient(circle at 10% 10%, #12253d 0%, #07101d 30%, #050b14 100%);
-  color: #f8fafc;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+
+/* ─── Root Variables ─────────────────────────────────────────────────────── */
+:root {
+  --color-bg:        #030712;
+  --color-bg-card:   #060e1c;
+  --color-cyan:      #22d3ee;
+  --color-blue:      #3b82f6;
+  --color-text:      #f8fafc;
+  --color-muted:     #94a3b8;
+  --radius-card:     1.5rem;
+  --shadow-glow:     0 0 40px rgba(34, 211, 238, 0.15);
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: 'Space Grotesk', 'Manrope', sans-serif;
-}
-
+/* ─── Global ──────────────────────────────────────────────────────────────── */
 html {
   scroll-behavior: smooth;
+  background: var(--color-bg);
 }
 
-/* Custom scrollbar */
+body {
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(34, 211, 238, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 90% 10%, rgba(59, 130, 246, 0.07) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 40% at 10% 80%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+    linear-gradient(180deg, #030712 0%, #020a18 100%);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* ─── Selection ───────────────────────────────────────────────────────────── */
+::selection {
+  background: rgba(34, 211, 238, 0.25);
+  color: #f8fafc;
+}
+
+/* ─── Scrollbar ───────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
-
 ::-webkit-scrollbar-track {
-  background: #1e293b;
+  background: #030712;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: #475569;
-  border-radius: 4px;
+  background: rgba(34, 211, 238, 0.2);
+  border-radius: 3px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: rgba(34, 211, 238, 0.35);
 }
 
-/* Animations */
+/* ─── Keyframe Animations ─────────────────────────────────────────────────── */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 @keyframes slideUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  from { transform: translateY(24px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
 }
 
-.animate-fadeIn {
-  animation: fadeIn 0.5s ease-in;
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-12px); }
 }
 
-.animate-slideUp {
-  animation: slideUp 0.5s ease-out;
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(34, 211, 238, 0.15); }
+  50%       { box-shadow: 0 0 40px rgba(34, 211, 238, 0.35), 0 0 80px rgba(34, 211, 238, 0.1); }
 }
 
-.glass-panel {
-  background: linear-gradient(160deg, rgba(16, 28, 46, 0.9), rgba(7, 14, 24, 0.85));
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  border-radius: 18px;
-  box-shadow: 0 16px 40px rgba(2, 8, 23, 0.35);
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
 }
 
-.metric-card {
-  background: linear-gradient(145deg, rgba(10, 22, 37, 0.95), rgba(7, 17, 30, 0.88));
-  border: 1px solid rgba(148, 163, 184, 0.15);
-  border-radius: 14px;
-  padding: 1rem;
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
 }
 
-.metric-value {
-  font-family: 'Space Grotesk', 'Manrope', sans-serif;
-  font-size: 1.75rem;
-  line-height: 1;
-  margin-bottom: 0.35rem;
+@keyframes borderPulse {
+  0%, 100% { border-color: rgba(34, 211, 238, 0.12); }
+  50%       { border-color: rgba(34, 211, 238, 0.28); }
 }
 
-.metric-label {
-  color: #cbd5e1;
-  font-size: 0.8rem;
-  line-height: 1.3;
+@keyframes scanLine {
+  0%   { top: 0%; opacity: 0.6; }
+  100% { top: 100%; opacity: 0; }
 }
 
-.bg-orb {
+/* ─── Utility Classes ─────────────────────────────────────────────────────── */
+.animate-fadeIn     { animation: fadeIn 0.5s ease-in; }
+.animate-slideUp    { animation: slideUp 0.6s ease-out; }
+.animate-float      { animation: float 4s ease-in-out infinite; }
+.animate-pulse-glow { animation: pulse-glow 2.5s ease-in-out infinite; }
+
+/* ─── Glassmorphism ────────────────────────────────────────────────────────── */
+.glass {
+  background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.glass-strong {
+  background: linear-gradient(135deg, rgba(6,14,28,0.95), rgba(3,7,18,0.92));
+  border: 1px solid rgba(34,211,238,0.12);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+/* ─── Shimmer Text ─────────────────────────────────────────────────────────── */
+.text-shimmer {
+  background: linear-gradient(90deg, #22d3ee, #60a5fa, #a78bfa, #22d3ee);
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s linear infinite;
+}
+
+/* ─── Gradient Border ──────────────────────────────────────────────────────── */
+.gradient-border {
+  position: relative;
+  border-radius: var(--radius-card);
+}
+.gradient-border::before {
+  content: '';
   position: absolute;
-  width: 28rem;
-  height: 28rem;
-  border-radius: 9999px;
-  filter: blur(70px);
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(34,211,238,0.3), rgba(59,130,246,0.2), rgba(139,92,246,0.15));
+  --webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: destination-out;
   pointer-events: none;
-  opacity: 0.18;
 }
 
-.bg-orb-one {
-  background: #06b6d4;
-  top: -12rem;
-  right: -8rem;
+/* ─── Glow Button ──────────────────────────────────────────────────────────── */
+.btn-glow {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+.btn-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.5s ease;
+}
+.btn-glow:hover::before {
+  transform: translateX(100%);
 }
 
-.bg-orb-two {
-  background: #f59e0b;
-  bottom: -16rem;
-  left: -10rem;
+/* ─── Glowing Card ─────────────────────────────────────────────────────────── */
+.card-glow {
+  transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+}
+.card-glow:hover {
+  box-shadow: 0 0 0 1px rgba(34,211,238,0.15), 0 24px 60px rgba(0,0,0,0.4), 0 0 40px rgba(34,211,238,0.06);
+  transform: translateY(-4px);
 }
 
-.clerk-shell :where(.cl-card) {
-  background: rgba(5, 12, 21, 0.78);
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  box-shadow: none;
+/* ─── Metric card ─────────────────────────────────────────────────────────── */
+.metric-card {
+  background: linear-gradient(145deg, rgba(10,22,37,0.95), rgba(6,14,24,0.9));
+  border: 1px solid rgba(148,163,184,0.1);
+  border-radius: 16px;
+  padding: 1.25rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.metric-card:hover {
+  border-color: rgba(34,211,238,0.2);
+  box-shadow: 0 0 30px rgba(34,211,238,0.05);
 }
 
-.clerk-shell :where(.cl-headerTitle) {
-  color: #f8fafc;
+/* ─── Scanning animation for hero card ────────────────────────────────────── */
+.scan-overlay {
+  position: relative;
+  overflow: hidden;
+}
+.scan-overlay::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(34,211,238,0.6), transparent);
+  animation: scanLine 2.5s ease-in-out infinite;
 }
 
-.clerk-shell :where(.cl-headerSubtitle, .cl-footerActionText, .cl-formFieldLabel) {
-  color: #cbd5e1;
+/* ─── Focus rings ──────────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid rgba(34,211,238,0.6);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ─── Nav link underline animation ────────────────────────────────────────── */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px; left: 50%;
+  width: 0; height: 1px;
+  background: #22d3ee;
+  transition: width 0.3s ease, left 0.3s ease;
+}
+.nav-link:hover::after {
+  width: 100%;
+  left: 0;
+}
+
+/* ─── Clerk overrides (comprehensive) ─────────────────────────────────────── */
+
+/* Root box — must never overflow its container */
+.clerk-shell .cl-rootBox,
+.clerk-shell .cl-signIn-root,
+.clerk-shell .cl-signUp-root {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: unset !important;
+}
+
+/* Card — transparent chrome, padding owns spacing */
+.clerk-shell .cl-card {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: unset !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 1.5rem 1.75rem 0 !important; /* top sides bottom — footer adds its own bottom */
+}
+
+/* Hide Clerk's own header — we provide our own above the card */
+.clerk-shell .cl-header {
+  display: none !important;
+}
+
+/* Main section */
+.clerk-shell .cl-main {
+  width: 100% !important;
+  padding: 0 !important;  /* card handles padding */
+  gap: 1rem !important;
+}
+
+/* ── Social buttons: FORCE vertical stack (Clerk uses grid internally) ─── */
+.clerk-shell .cl-socialButtonsRoot {
+  display: grid !important;
+  grid-template-columns: 1fr !important;   /* <- key: collapses 2-col to 1-col */
+  gap: 0.625rem !important;
+  width: 100% !important;
+}
+.clerk-shell .cl-socialButtonsBlockButton {
+  width: 100% !important;
+  min-width: unset !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 0.75rem !important;
+  padding: 0.75rem 1rem !important;
+  border-radius: 0.75rem !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  background: rgba(255,255,255,0.04) !important;
+  color: #f8fafc !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  transition: background 0.15s, border-color 0.15s !important;
+  box-shadow: none !important;
+}
+.clerk-shell .cl-socialButtonsBlockButton:hover {
+  background: rgba(255,255,255,0.07) !important;
+  border-color: rgba(255,255,255,0.18) !important;
+}
+.clerk-shell .cl-socialButtonsBlockButton__github {
+  background: #161b22 !important;
+}
+.clerk-shell .cl-socialButtonsBlockButton__google {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #ffffff !important;
+}
+.clerk-shell .cl-socialButtonsBlockButtonText {
+  flex: 1 !important;
+  text-align: left !important;
+  font-weight: 600 !important;
+}
+.clerk-shell .cl-socialButtonsProviderIcon {
+  width: 20px !important;
+  height: 20px !important;
+  flex-shrink: 0 !important;
+}
+
+/* ── Divider ────────────────────────────────────────────────────────────── */
+.clerk-shell .cl-dividerRow { margin: 0.875rem 0 !important; }
+.clerk-shell .cl-dividerLine { background: rgba(255,255,255,0.07) !important; }
+.clerk-shell .cl-dividerText {
+  color: #475569 !important;
+  font-size: 0.75rem !important;
+  white-space: nowrap !important;
+  padding: 0 0.75rem !important;
+}
+
+/* ── Form fields ────────────────────────────────────────────────────────── */
+.clerk-shell .cl-formFieldRow { margin-bottom: 0.75rem !important; }
+.clerk-shell .cl-formFieldLabel {
+  color: #94a3b8 !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  margin-bottom: 0.375rem !important;
+}
+.clerk-shell .cl-formFieldInput {
+  width: 100% !important;
+  background: rgba(255,255,255,0.05) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  border-radius: 0.75rem !important;
+  color: #e2e8f0 !important;
+  font-size: 0.875rem !important;
+  padding: 0.75rem 1rem !important;
+  transition: border-color 0.15s, background 0.15s !important;
+}
+.clerk-shell .cl-formFieldInput:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: rgba(34,211,238,0.45) !important;
+  background: rgba(255,255,255,0.07) !important;
+}
+
+/* ── Primary button ─────────────────────────────────────────────────────── */
+.clerk-shell .cl-formButtonPrimary {
+  width: 100% !important;
+  border-radius: 0.75rem !important;
+  font-weight: 700 !important;
+  font-size: 0.875rem !important;
+  padding: 0.75rem 1.5rem !important;
+  letter-spacing: 0 !important;
+  margin-top: 0.5rem !important;
+  box-shadow: none !important;
+  transition: opacity 0.15s, box-shadow 0.2s !important;
+}
+
+/* ── Footer ─────────────────────────────────────────────────────────────── */
+.clerk-shell .cl-footerAction {
+  display: flex !important;
+  justify-content: center !important;
+  margin-top: 1.25rem !important;
+  padding-top: 1rem !important;
+  border-top: 1px solid rgba(255,255,255,0.06) !important;
+}
+.clerk-shell .cl-footerActionText { color: #475569 !important; font-size: 0.75rem !important; }
+.clerk-shell .cl-footerActionLink  { font-size: 0.75rem !important; font-weight: 600 !important; }
+
+/* ── Development mode + Secured by Clerk footer ─────────────────────────── */
+.clerk-shell .cl-footer {
+  background: rgba(255,255,255,0.02) !important;
+  border-top: 1px solid rgba(255,255,255,0.05) !important;
+  padding: 0.75rem 1.75rem !important;  /* matches card p-7 (1.75rem) */
+  margin: 0 !important;
+  /* grayscale+opacity desaturates the orange "Development mode" link
+     even when Clerk sets it via an inline style we cannot override */
+  filter: grayscale(1) opacity(0.35) !important;
+}
+
+/* ── Errors ─────────────────────────────────────────────────────────────── */
+.clerk-shell .cl-formFieldErrorText { color: #fb7185 !important; font-size: 0.7rem !important; }
+.clerk-shell .cl-alertText { color: #fda4af !important; font-size: 0.75rem !important; }
+
+
+/* ─── Range input (Settings risk slider) ──────────────────────────────────── */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #22d3ee;
+  border: 2px solid rgba(0,0,0,0.4);
+  box-shadow: 0 0 8px rgba(34,211,238,0.4);
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+input[type='range']::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 14px rgba(34,211,238,0.6);
+}
+input[type='range']::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #22d3ee;
+  border: 2px solid rgba(0,0,0,0.4);
+  cursor: pointer;
+}
+
+/* ─── App-shell background ────────────────────────────────────────────────── */
+.bg-primary {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(34,211,238,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 10% 80%, rgba(139,92,246,0.04) 0%, transparent 50%),
+    linear-gradient(180deg, #030712 0%, #020a18 100%);
 }

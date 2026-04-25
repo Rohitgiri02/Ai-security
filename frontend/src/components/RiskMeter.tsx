@@ -30,9 +30,9 @@ export const RiskMeter: React.FC<RiskMeterProps> = ({ score }) => {
           strokeDashoffset={offset}
         />
       </svg>
-      <div className="absolute inset-0 grid place-items-center text-center">
-        <p className="text-2xl font-semibold text-white">{score}</p>
-        <p className="text-xs text-slate-400 uppercase tracking-wide">Risk</p>
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+        <p className="text-2xl font-semibold leading-none text-white">{score}</p>
+        <p className="mt-2 text-xs leading-none text-slate-400 uppercase tracking-wide">Risk</p>
       </div>
     </div>
   );

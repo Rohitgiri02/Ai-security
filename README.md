@@ -74,6 +74,12 @@ The frontend will run on `http://localhost:3001`
 - **HTTP Client**: Axios
 - **Routing**: React Router
 
+### Frontend UI
+- **Landing Page**: Hero, features slider, and workflow sections use motion to feel more dynamic
+- **Footer Layout**: The footer now uses a three-column responsive grid for cleaner alignment
+- **Social Links**: GitHub, X, and LinkedIn icons are included in the footer for quick external navigation
+- **Accessibility**: Social icons include labels and the layout stays readable on smaller screens
+
 ## 📚 API Endpoints
 
 ### Authentication

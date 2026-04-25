@@ -20,14 +20,18 @@ export const ScanTimeline: React.FC<ScanTimelineProps> = ({ timeline }) => {
   return (
     <div className="space-y-3">
       {timeline.map((item, idx) => (
-        <Card key={`${item.meta?.scannedAt || item.analyzedAt || idx}-${idx}`} className="p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-sm text-white font-medium">Scan #{timeline.length - idx}</p>
-              <p className="text-xs text-slate-400 mt-1">{formatDate(item.meta?.scannedAt || item.analyzedAt)}</p>
-              <p className="text-xs text-slate-300 mt-2">{item.ai?.summary || 'No AI summary provided.'}</p>
+        <Card key={`${item.meta?.scannedAt || item.analyzedAt || idx}-${idx}`} className="p-5 md:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-white">Scan #{timeline.length - idx}</p>
+              <p className="mt-1 text-xs text-slate-400">{formatDate(item.meta?.scannedAt || item.analyzedAt)}</p>
+              <p className="mt-3 text-sm leading-relaxed text-slate-300">
+                {item.ai?.summary || 'No AI summary provided.'}
+              </p>
             </div>
-            <RiskBadge risk={item.risk} />
+            <div className="shrink-0">
+              <RiskBadge risk={item.risk} />
+            </div>
           </div>
         </Card>
       ))}

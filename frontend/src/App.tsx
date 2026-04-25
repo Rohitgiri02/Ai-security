@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom
 import { useAuth, useUser } from '@clerk/clerk-react';
 import Navbar from './components/Navbar';
 import { Footer } from './components/Footer';
+import { AppFooter } from './components/AppFooter';
 import { Sidebar } from './components/Sidebar';
 import { ToastHost } from './components/ToastHost';
 import { Landing } from './pages/Landing';
@@ -41,10 +42,10 @@ function ProtectedLayout() {
         <Sidebar />
         <div className="flex min-w-0 flex-1 flex-col">
           <Navbar />
-          <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-6 pb-16 md:px-8 md:py-8 md:pb-20">
+          <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-6 md:px-8 md:py-8">
             <Outlet />
           </main>
-          <Footer className="mt-auto" />
+          <AppFooter />
         </div>
       </div>
     </ProtectedRoute>
